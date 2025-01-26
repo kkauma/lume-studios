@@ -10,6 +10,7 @@ export async function middleware(req: NextRequest) {
   const isPublicPath =
     req.nextUrl.pathname === "/" ||
     req.nextUrl.pathname.startsWith("/login") ||
+    req.nextUrl.pathname.startsWith("/signup") ||
     req.nextUrl.pathname.startsWith("/register");
 
   if (isPublicPath && isAuthenticated) {

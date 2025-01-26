@@ -1,18 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import { signIn } from "next-auth/react";
 import { Button } from "@/components/ui/button";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabase";
 import Link from "next/link";
 
-export function LoginForm() {
+export function SignUpForm() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [name, setName] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,20 +20,34 @@ export function LoginForm() {
     setError(null);
 
     try {
-      const result = await signIn("credentials", {
+      const { data, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
-        redirect: false,
+        options: {
+          data: {
+            name,
+          },
+        },
       });
 
-      if (result?.error) {
-        setError(result.error);
-      } else {
-        router.push("/dashboard");
-        router.refresh();
+      if (signUpError) throw signUpError;
+
+      if (data.user) {
+        // Create user profile in our database
+        const { error: profileError } = await supabase.from("users").insert({
+          id: data.user.id,
+          email: data.user.email,
+          name,
+          role: "FREE",
+        });
+
+        if (profileError) throw profileError;
+
+        // Redirect to login page
+        router.push("/login?registered=true");
       }
-    } catch (error) {
-      setError("Something went wrong. Please try again.");
+    } catch (error: any) {
+      setError(error.message || "Something went wrong. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -41,17 +55,28 @@ export function LoginForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      {searchParams?.get("registered") && (
-        <div className="p-3 bg-green-500/10 border border-green-500/20 text-green-500 rounded">
-          Account created successfully! Please sign in.
-        </div>
-      )}
-
       {error && (
         <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-500 rounded">
           {error}
         </div>
       )}
+
+      <div>
+        <label
+          htmlFor="name"
+          className="block text-sm font-medium text-gray-300"
+        >
+          Name
+        </label>
+        <input
+          id="name"
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          className="mt-1 block w-full rounded-md bg-white/10 border border-gray-600 px-3 py-2 text-white placeholder-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+          required
+        />
+      </div>
 
       <div>
         <label
@@ -92,13 +117,13 @@ export function LoginForm() {
         className="w-full bg-gradient-to-r from-blue-600 to-blue-400"
         disabled={isLoading}
       >
-        {isLoading ? "Signing in..." : "Sign in"}
+        {isLoading ? "Creating account..." : "Create account"}
       </Button>
 
       <p className="text-center text-sm text-gray-400">
-        Don't have an account?{" "}
-        <Link href="/signup" className="text-blue-400 hover:text-blue-300">
-          Create one
+        Already have an account?{" "}
+        <Link href="/login" className="text-blue-400 hover:text-blue-300">
+          Sign in
         </Link>
       </p>
     </form>

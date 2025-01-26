@@ -1,51 +1,8 @@
-import Image from "next/image";
 import Link from "next/link";
 
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-[#0a0a2c] to-gray-900">
-      {/* Navigation */}
-      <nav className="fixed top-0 w-full z-50 px-6 py-4">
-        <div className="container mx-auto flex items-center justify-between">
-          <div className="flex items-center">
-            <Link href="/" className="hover:opacity-90 transition-opacity">
-              <h1 className="text-2xl font-bold text-white">Lume Studios</h1>
-            </Link>
-          </div>
-
-          <div className="hidden md:flex items-center space-x-8 text-gray-300">
-            <Link
-              href="/overview"
-              className="hover:text-white transition-colors"
-            >
-              Overview
-            </Link>
-            <Link
-              href="/features"
-              className="hover:text-white transition-colors"
-            >
-              Features
-            </Link>
-            <Link
-              href="/roadmap"
-              className="hover:text-white transition-colors"
-            >
-              Roadmap
-            </Link>
-            <Link href="/faq" className="hover:text-white transition-colors">
-              FAQ
-            </Link>
-          </div>
-
-          <Link
-            href="/dashboard"
-            className="bg-gradient-to-r from-blue-600 to-blue-400 text-white px-6 py-2 rounded-full hover:opacity-90 transition-opacity"
-          >
-            Get Started →
-          </Link>
-        </div>
-      </nav>
-
       {/* Hero Section */}
       <div className="relative pt-32 pb-16 md:pt-40 md:pb-24">
         {/* Background gradient circle */}

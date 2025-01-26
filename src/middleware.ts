@@ -8,11 +8,12 @@ export async function middleware(req: NextRequest) {
 
   // Public paths that don't require authentication
   const isPublicPath =
+    req.nextUrl.pathname === "/" ||
     req.nextUrl.pathname.startsWith("/login") ||
     req.nextUrl.pathname.startsWith("/register");
 
   if (isPublicPath && isAuthenticated) {
-    return NextResponse.redirect(new URL("/", req.url));
+    return NextResponse.redirect(new URL("/dashboard", req.url));
   }
 
   if (!isPublicPath && !isAuthenticated) {

@@ -9,14 +9,21 @@ export async function middleware(req: NextRequest) {
   // Public paths that don't require authentication
   const isPublicPath =
     req.nextUrl.pathname === "/" ||
+    req.nextUrl.pathname === "/pricing" ||
     req.nextUrl.pathname.startsWith("/login") ||
     req.nextUrl.pathname.startsWith("/signup") ||
     req.nextUrl.pathname.startsWith("/register");
 
-  if (isPublicPath && isAuthenticated) {
+  // Redirect to dashboard if trying to access auth pages while logged in
+  if (
+    isAuthenticated &&
+    (req.nextUrl.pathname.startsWith("/login") ||
+      req.nextUrl.pathname.startsWith("/signup"))
+  ) {
     return NextResponse.redirect(new URL("/dashboard", req.url));
   }
 
+  // Require authentication for non-public paths
   if (!isPublicPath && !isAuthenticated) {
     return NextResponse.redirect(new URL("/login", req.url));
   }

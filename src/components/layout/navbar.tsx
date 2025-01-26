@@ -29,8 +29,8 @@ export function Navbar() {
           <Link href="/features" className="hover:text-white transition-colors">
             Features
           </Link>
-          <Link href="/roadmap" className="hover:text-white transition-colors">
-            Roadmap
+          <Link href="/pricing" className="hover:text-white transition-colors">
+            Pricing
           </Link>
           <Link href="/faq" className="hover:text-white transition-colors">
             FAQ

@@ -1,88 +1,107 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { Check } from "lucide-react";
+import Link from "next/link";
+import { useSession } from "next-auth/react";
 
 interface PriceCardProps {
   name: string;
-  price: string;
+  price: string | "Custom";
+  description?: string;
   features: string[];
-  priceId: string;
   highlighted?: boolean;
+  priceId?: string;
 }
 
 export function PriceCard({
   name,
   price,
+  description,
   features,
-  priceId,
   highlighted = false,
+  priceId,
 }: PriceCardProps) {
-  const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false);
+  const { data: session } = useSession();
 
   const handleSubscribe = async () => {
     try {
-      setIsLoading(true);
       const response = await fetch("/api/stripe/create-checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ priceId, plan: name.toUpperCase() }),
+        body: JSON.stringify({ priceId }),
       });
 
       const data = await response.json();
-      if (data.url) {
-        router.push(data.url);
-      }
+      window.location.href = data.url;
     } catch (error) {
       console.error("Error:", error);
-    } finally {
-      setIsLoading(false);
     }
   };
 
   return (
     <div
-      className={`rounded-lg p-8 ${
+      className={`relative rounded-2xl border ${
         highlighted
-          ? "border-2 border-primary shadow-lg"
-          : "border border-border"
-      }`}
+          ? "border-blue-500 bg-blue-500/5"
+          : "border-gray-800 bg-gray-900/50"
+      } p-8 shadow-lg backdrop-blur-sm`}
     >
-      <h3 className="text-2xl font-bold">{name}</h3>
-      <p className="mt-4 text-3xl font-bold">${price}</p>
-      <p className="text-sm text-muted-foreground">per month</p>
+      {highlighted && (
+        <div className="absolute -top-5 left-0 right-0 mx-auto w-fit rounded-full bg-gradient-to-r from-blue-600 to-blue-400 px-4 py-1 text-sm font-medium text-white">
+          Popular Choice
+        </div>
+      )}
 
-      <ul className="mt-8 space-y-4">
+      <div className="mb-6">
+        <h3 className="text-2xl font-bold text-white">{name}</h3>
+        {description && <p className="mt-2 text-gray-400">{description}</p>}
+      </div>
+
+      <div className="mb-6">
+        <div className="flex items-baseline">
+          {price === "Custom" ? (
+            <span className="text-5xl font-bold text-white">Custom</span>
+          ) : (
+            <>
+              <span className="text-5xl font-bold text-white">${price}</span>
+              <span className="ml-1 text-gray-400">/month</span>
+            </>
+          )}
+        </div>
+      </div>
+
+      <ul className="mb-8 space-y-4">
         {features.map((feature) => (
-          <li key={feature} className="flex items-center">
-            <svg
-              className="h-5 w-5 text-green-500"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M5 13l4 4L19 7"
-              />
-            </svg>
-            <span className="ml-3">{feature}</span>
+          <li key={feature} className="flex items-center text-gray-300">
+            <Check className="mr-3 h-4 w-4 text-blue-500" />
+            {feature}
           </li>
         ))}
       </ul>
 
-      <Button
-        onClick={handleSubscribe}
-        disabled={isLoading}
-        className="mt-8 w-full"
-        variant={highlighted ? "default" : "outline"}
-      >
-        {isLoading ? "Processing..." : "Subscribe Now"}
-      </Button>
+      {price === "Custom" ? (
+        <Link
+          href="mailto:sales@lumestudios.com"
+          className="block w-full rounded-full bg-gradient-to-r from-blue-600 to-blue-400 px-6 py-3 text-center text-white hover:opacity-90 transition-opacity"
+        >
+          Contact Sales
+        </Link>
+      ) : price === "0" ? (
+        <Link
+          href="/signup"
+          className="block w-full rounded-full bg-gradient-to-r from-blue-600 to-blue-400 px-6 py-3 text-center text-white hover:opacity-90 transition-opacity"
+        >
+          Get Started
+        </Link>
+      ) : (
+        <Button
+          onClick={handleSubscribe}
+          className="w-full rounded-full bg-gradient-to-r from-blue-600 to-blue-400 px-6 py-3"
+        >
+          Subscribe Now
+        </Button>
+      )}
     </div>
   );
 }

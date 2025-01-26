@@ -1,38 +1,70 @@
-import { PLANS } from "@/lib/stripe";
 import { PriceCard } from "@/components/pricing/price-card";
 
 export default function PricingPage() {
   return (
-    <div className="container mx-auto py-16">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold">Simple, Transparent Pricing</h1>
-        <p className="mt-4 text-lg text-muted-foreground">
-          Choose the plan that's right for you
-        </p>
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-[#0a0a2c] to-gray-900">
+      <div className="container mx-auto px-6 py-32">
+        <div className="text-center mb-16">
+          <h1 className="text-4xl font-bold text-white mb-4">
+            Simple, Transparent Pricing
+          </h1>
+          <p className="text-xl text-gray-400">
+            Choose the plan that best fits your needs
+          </p>
+        </div>
 
-      <div className="mt-16 grid grid-cols-1 gap-8 md:grid-cols-2 lg:gap-12">
-        <PriceCard
-          name={PLANS.PRO.name}
-          price="49"
-          features={[...PLANS.PRO.features]}
-          priceId={PLANS.PRO.price}
-        />
-        <PriceCard
-          name={PLANS.ENTERPRISE.name}
-          price="99"
-          features={[...PLANS.ENTERPRISE.features]}
-          priceId={PLANS.ENTERPRISE.price}
-          highlighted
-        />
-      </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+          <PriceCard
+            name="Free"
+            price="0"
+            description="Perfect for trying out our services"
+            features={[
+              "5 AI generations per month",
+              "Basic templates",
+              "Standard support",
+              "1 user",
+            ]}
+          />
 
-      <div className="mt-16 text-center">
-        <h2 className="text-2xl font-bold">Money Back Guarantee</h2>
-        <p className="mt-4 text-muted-foreground">
-          Try any plan risk-free for 14 days. If you're not completely
-          satisfied, let us know and we'll refund your payment.
-        </p>
+          <PriceCard
+            name="Premium"
+            price="49"
+            description="For professionals and growing businesses"
+            features={[
+              "Unlimited AI generations",
+              "Premium templates",
+              "Priority support",
+              "Advanced analytics",
+              "Custom branding",
+            ]}
+            highlighted
+            priceId={process.env.STRIPE_PRICE_ID_PRO}
+          />
+
+          <PriceCard
+            name="Enterprise"
+            price="Custom"
+            description="For large organizations with custom needs"
+            features={[
+              "Everything in Premium",
+              "Custom AI model training",
+              "Dedicated account manager",
+              "API access",
+              "SSO & advanced security",
+              "Custom integrations",
+            ]}
+          />
+        </div>
+
+        <div className="mt-16 text-center">
+          <p className="text-gray-400">
+            All plans include our core features. View our{" "}
+            <a href="/features" className="text-blue-400 hover:text-blue-300">
+              full feature comparison
+            </a>
+            .
+          </p>
+        </div>
       </div>
     </div>
   );

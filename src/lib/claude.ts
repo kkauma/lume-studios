@@ -1,5 +1,8 @@
 import Anthropic from "@anthropic-ai/sdk";
-import { ContentGenerationRequest } from "@/types/ai";
+import {
+  ContentGenerationRequest,
+  ContentGenerationResponse,
+} from "@/types/ai";
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY!,
@@ -37,7 +40,7 @@ export class AIService {
         messages: [{ role: "user", content: prompt }],
       });
 
-      const generatedContent = completion.content[0].text;
+      const generatedContent = completion.content[0].value;
 
       return {
         id: completion.id,

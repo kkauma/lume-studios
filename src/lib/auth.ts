@@ -1,16 +1,8 @@
-import { PrismaAdapter } from "@auth/prisma-adapter";
 import { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
-import { prisma } from "@/lib/prisma";
+import { supabase } from "@/lib/supabase";
 
 export const authOptions: NextAuthOptions = {
-  adapter: PrismaAdapter(prisma),
-  session: {
-    strategy: "jwt",
-  },
-  pages: {
-    signIn: "/login",
-  },
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
@@ -18,38 +10,54 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
+    async signIn({ user, account }) {
+      if (!user.email) return false;
+
+      try {
+        const { data: existingUser } = await supabase
+          .from("users")
+          .select()
+          .eq("email", user.email)
+          .single();
+
+        if (!existingUser) {
+          const { error } = await supabase.from("users").insert({
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            image: user.image,
+            role: "FREE",
+          });
+
+          if (error) throw error;
+        }
+
+        return true;
+      } catch (error) {
+        console.error("Error during sign in:", error);
+        return false;
+      }
+    },
     async session({ token, session }) {
       if (token && session.user) {
-        session.user.id = token.id;
-        session.user.name = token.name;
-        session.user.email = token.email;
-        session.user.image = token.picture;
-        session.user.role = token.role;
-      }
+        const { data: user } = await supabase
+          .from("users")
+          .select()
+          .eq("email", session.user.email!)
+          .single();
 
+        if (user) {
+          session.user.id = user.id;
+          session.user.role = user.role;
+        }
+      }
       return session;
     },
     async jwt({ token, user }) {
-      const dbUser = await prisma.user.findFirst({
-        where: {
-          email: token.email!,
-        },
-      });
-
-      if (!dbUser) {
-        if (user) {
-          token.id = user?.id;
-        }
-        return token;
+      if (user) {
+        token.id = user.id;
       }
-
-      return {
-        id: dbUser.id,
-        name: dbUser.name,
-        email: dbUser.email,
-        picture: dbUser.image,
-        role: dbUser.role,
-      };
+      return token;
     },
   },
 };

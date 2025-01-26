@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { AIService } from "@/lib/claude";
-import { prisma } from "@/lib/prisma";
+import { supabase } from "@/lib/supabase";
 import { authOptions } from "@/lib/auth";
 import { ContentGenerationRequest } from "@/types/ai";
 import { rateLimit } from "@/lib/rate-limit";
@@ -31,16 +31,20 @@ export async function POST(req: Request) {
     const result = await AIService.generateContent(json);
 
     // Save to database
-    const content = await prisma.content.create({
-      data: {
+    const { data: content, error } = await supabase
+      .from("contents")
+      .insert({
         title: json.topic,
         content: result.content,
         type: json.type,
         status: "draft",
         metadata: result.metadata,
-        userId: session.user.id,
-      },
-    });
+        user_id: session.user.id,
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
 
     return NextResponse.json(content);
   } catch (error) {

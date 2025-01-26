@@ -162,7 +162,7 @@ Lume Studios is a platform that helps users generate high-quality blog posts, ma
 - Vercel for hosting and deployment
 - Edge Functions for global performance
 - Vercel KV (Redis) for caching
-- Neon.tech for database
+- Supabase for database and vector database
 - GitHub Actions for CI/CD
 
 #### Essential Third-party Services

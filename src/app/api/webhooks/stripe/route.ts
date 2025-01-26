@@ -28,7 +28,8 @@ async function handleSubscriptionChange(subscription: any) {
 
 export async function POST(req: Request) {
   const body = await req.text();
-  const signature = headers().get("Stripe-Signature")!;
+  const headersList = await headers();
+  const signature = headersList.get("Stripe-Signature")!;
 
   let event;
 

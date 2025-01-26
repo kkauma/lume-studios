@@ -34,7 +34,7 @@ export class AIService {
       const prompt = this.buildPrompt(request);
 
       const completion = await anthropic.messages.create({
-        model: "claude-3-opus-20240229",
+        model: "claude-3-sonnet-20240307",
         max_tokens: 4096,
         temperature: 0.7,
         messages: [{ role: "user", content: prompt }],

@@ -15,13 +15,13 @@ export default function PricingPage() {
         <PriceCard
           name={PLANS.PRO.name}
           price="49"
-          features={PLANS.PRO.features}
+          features={[...PLANS.PRO.features]}
           priceId={PLANS.PRO.price}
         />
         <PriceCard
           name={PLANS.ENTERPRISE.name}
           price="99"
-          features={PLANS.ENTERPRISE.features}
+          features={[...PLANS.ENTERPRISE.features]}
           priceId={PLANS.ENTERPRISE.price}
           highlighted
         />

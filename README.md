@@ -198,13 +198,13 @@ Lume Studios is a platform that helps users generate high-quality blog posts, ma
 - Axiom for log management
 - Status page for system health
 
-## Development Roadmap
+## Development Phases
 
 ### Phase 1: Foundation (Weeks 1-2)
 
 1. Project Setup
 
-   - Next.js 14 project initialization
+   - Initialize Next.js project setup
    - TypeScript configuration
    - Tailwind CSS setup
    - Basic project structure

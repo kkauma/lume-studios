@@ -1,49 +1,50 @@
 import { NextAuthOptions } from "next-auth";
-import GoogleProvider from "next-auth/providers/google";
+import CredentialsProvider from "next-auth/providers/credentials";
 import { supabase } from "@/lib/supabase";
 
 export const authOptions: NextAuthOptions = {
   providers: [
-    GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-    }),
-  ],
-  callbacks: {
-    async signIn({ user, account }) {
-      if (!user.email) return false;
-
-      try {
-        const { data: existingUser } = await supabase
-          .from("users")
-          .select()
-          .eq("email", user.email)
-          .single();
-
-        if (!existingUser) {
-          const { error } = await supabase.from("users").insert({
-            id: user.id,
-            email: user.email,
-            name: user.name,
-            image: user.image,
-            role: "FREE",
-          });
-
-          if (error) throw error;
+    CredentialsProvider({
+      name: "credentials",
+      credentials: {
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" },
+      },
+      async authorize(credentials) {
+        if (!credentials?.email || !credentials?.password) {
+          throw new Error("Missing credentials");
         }
 
-        return true;
-      } catch (error) {
-        console.error("Error during sign in:", error);
-        return false;
-      }
-    },
+        const {
+          data: { user },
+          error,
+        } = await supabase.auth.signInWithPassword({
+          email: credentials.email,
+          password: credentials.password,
+        });
+
+        if (error || !user) {
+          throw new Error(error?.message || "Invalid credentials");
+        }
+
+        return {
+          id: user.id,
+          email: user.email,
+          name: user.user_metadata.name,
+        };
+      },
+    }),
+  ],
+  pages: {
+    signIn: "/login",
+  },
+  callbacks: {
     async session({ token, session }) {
       if (token && session.user) {
         const { data: user } = await supabase
           .from("users")
           .select()
-          .eq("email", session.user.email!)
+          .eq("id", token.sub)
           .single();
 
         if (user) {
@@ -55,7 +56,7 @@ export const authOptions: NextAuthOptions = {
     },
     async jwt({ token, user }) {
       if (user) {
-        token.id = user.id;
+        token.sub = user.id;
       }
       return token;
     },

@@ -1,4 +1,4 @@
-import { LoginButton } from "@/components/auth/login-button";
+import { LoginForm } from "@/components/auth/login-form";
 
 export default function LoginPage() {
   return (
@@ -8,7 +8,7 @@ export default function LoginPage() {
           <h1 className="text-3xl font-bold">Welcome back</h1>
           <p className="text-gray-500">Sign in to your account</p>
         </div>
-        <LoginButton />
+        <LoginForm />
       </div>
     </div>
   );

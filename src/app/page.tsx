@@ -8,13 +8,9 @@ export default function HomePage() {
       <nav className="fixed top-0 w-full z-50 px-6 py-4">
         <div className="container mx-auto flex items-center justify-between">
           <div className="flex items-center">
-            <Image
-              src="/logo.png" // Make sure to add your logo
-              alt="Lume Studios"
-              width={120}
-              height={40}
-              className="h-10 w-auto"
-            />
+            <Link href="/" className="hover:opacity-90 transition-opacity">
+              <h1 className="text-2xl font-bold text-white">Lume Studios</h1>
+            </Link>
           </div>
 
           <div className="hidden md:flex items-center space-x-8 text-gray-300">

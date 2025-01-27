@@ -5,6 +5,7 @@ import { supabase } from "@/lib/supabase";
 export const authOptions: NextAuthOptions = {
   session: {
     strategy: "jwt",
+    maxAge: 24 * 60 * 60, // 24 hours
   },
   providers: [
     CredentialsProvider({
@@ -55,6 +56,8 @@ export const authOptions: NextAuthOptions = {
   ],
   pages: {
     signIn: "/login",
+    signOut: "/",
+    error: "/login",
   },
   callbacks: {
     async jwt({ token, user }) {
@@ -73,5 +76,17 @@ export const authOptions: NextAuthOptions = {
       }
       return session;
     },
+  },
+  events: {
+    async signOut() {
+      // Ensure Supabase is signed out
+      await supabase.auth.signOut();
+    },
+  },
+  // Add these options to prevent auto sign-in
+  secret: process.env.NEXTAUTH_SECRET,
+  debug: process.env.NODE_ENV === "development",
+  jwt: {
+    maxAge: 24 * 60 * 60, // 24 hours
   },
 };

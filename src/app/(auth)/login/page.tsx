@@ -1,6 +1,14 @@
 import { LoginForm } from "@/components/auth/login-form";
+import { redirect } from "next/navigation";
 
-export default function LoginPage() {
+interface LoginPageProps {
+  searchParams?: {
+    message?: string;
+    redirectTo?: string;
+  };
+}
+
+export default function LoginPage({ searchParams }: LoginPageProps) {
   return (
     <div className="flex min-h-screen items-center justify-center p-6">
       <div className="w-full max-w-md space-y-8">
@@ -15,7 +23,13 @@ export default function LoginPage() {
             </p>
           </div>
 
-          <LoginForm />
+          {searchParams?.message && (
+            <div className="mb-4 p-3 bg-blue-500/10 border border-blue-500/20 text-blue-500 rounded text-center text-sm">
+              {searchParams.message}
+            </div>
+          )}
+
+          <LoginForm redirectTo={searchParams?.redirectTo} />
         </div>
       </div>
     </div>

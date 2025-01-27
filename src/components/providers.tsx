@@ -3,25 +3,34 @@
 import { SessionProvider } from "next-auth/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactNode } from "react";
+import { Session } from "next-auth";
 
 interface ProvidersProps {
   children: ReactNode;
+  initialSession: Session | null;
 }
 
-// Create a client
+// Create a client with specific session handling
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 60 * 1000, // 1 minute
+      staleTime: 0, // Don't cache session data
       refetchOnWindowFocus: false,
+      retry: false, // Don't retry failed session fetches
     },
   },
 });
 
-export function Providers({ children }: ProvidersProps) {
+export function Providers({ children, initialSession }: ProvidersProps) {
   return (
     <QueryClientProvider client={queryClient}>
-      <SessionProvider>{children}</SessionProvider>
+      <SessionProvider
+        session={initialSession}
+        refetchOnWindowFocus={false}
+        refetchInterval={0}
+      >
+        {children}
+      </SessionProvider>
     </QueryClientProvider>
   );
 }

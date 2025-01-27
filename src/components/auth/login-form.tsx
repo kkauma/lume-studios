@@ -3,12 +3,15 @@
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { Button } from "@/components/ui/button";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 
-export function LoginForm() {
+interface LoginFormProps {
+  redirectTo?: string;
+}
+
+export function LoginForm({ redirectTo }: LoginFormProps) {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [email, setEmail] = useState("");
@@ -31,7 +34,8 @@ export function LoginForm() {
         return;
       }
 
-      router.push("/dashboard");
+      // Redirect to the original requested URL or dashboard
+      router.push(redirectTo || "/dashboard");
       router.refresh();
     } catch (error: any) {
       setError(error.message || "Something went wrong");
@@ -42,12 +46,6 @@ export function LoginForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      {searchParams?.get("registered") && (
-        <div className="p-3 bg-green-500/10 border border-green-500/20 text-green-500 rounded">
-          Account created successfully! Please sign in.
-        </div>
-      )}
-
       {error && (
         <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-500 rounded">
           {error}

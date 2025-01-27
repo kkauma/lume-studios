@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
 import Link from "next/link";
+import { supabase } from "@/lib/supabase";
 
 export function SignUpForm() {
   const router = useRouter();
@@ -20,34 +20,36 @@ export function SignUpForm() {
     setError(null);
 
     try {
-      const { data, error: signUpError } = await supabase.auth.signUp({
+      // 1. Create auth user in Supabase
+      const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password,
-        options: {
-          data: {
-            name,
-          },
-        },
       });
 
-      if (signUpError) throw signUpError;
+      if (authError) throw authError;
 
-      if (data.user) {
-        // Create user profile in our database
-        const { error: profileError } = await supabase.from("users").insert({
-          id: data.user.id,
-          email: data.user.email,
-          name,
-          role: "FREE",
+      // 2. Create user record in our users table using service role client
+      if (authData.user) {
+        const response = await fetch("/api/auth/create-user", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            id: authData.user.id,
+            email: authData.user.email,
+            name,
+          }),
         });
 
-        if (profileError) throw profileError;
-
-        // Redirect to login page
-        router.push("/login?registered=true");
+        if (!response.ok) {
+          throw new Error("Failed to create user profile");
+        }
       }
+
+      router.push("/login?registered=true");
     } catch (error: any) {
-      setError(error.message || "Something went wrong. Please try again.");
+      setError(error.message);
     } finally {
       setIsLoading(false);
     }

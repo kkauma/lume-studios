@@ -28,12 +28,13 @@ export function LoginForm() {
 
       if (result?.error) {
         setError(result.error);
-      } else {
-        router.push("/dashboard");
-        router.refresh();
+        return;
       }
-    } catch (error) {
-      setError("Something went wrong. Please try again.");
+
+      router.push("/dashboard");
+      router.refresh();
+    } catch (error: any) {
+      setError(error.message || "Something went wrong");
     } finally {
       setIsLoading(false);
     }

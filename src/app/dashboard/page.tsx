@@ -1,54 +1,75 @@
 import { ContentForm } from "@/components/content/content-form";
-import { ContentEditor } from "@/components/content/content-editor";
-import { SubscriptionManager } from "@/components/subscription/subscription-manager";
+import { ContentList } from "@/components/content/content-list";
+import { DashboardHeader } from "@/components/dashboard/dashboard-header";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@supabase/supabase-js";
 import { redirect } from "next/navigation";
+
+// Create a Supabase client with the service role key for admin access
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions);
   if (!session?.user) redirect("/login");
 
-  const { data: user } = await supabase
-    .from("users")
-    .select("*")
-    .eq("id", session.user.id)
-    .single();
+  try {
+    // Get user data including subscription status using admin client
+    const { data: user, error: userError } = await supabaseAdmin
+      .from("users")
+      .select("*")
+      .eq("id", session.user.id)
+      .single();
 
-  const subscription = user
-    ? {
-        status: user.stripe_subscription_id ? "active" : "inactive",
-        plan: user.role,
-        currentPeriodEnd:
-          user.stripe_current_period_end || new Date().toISOString(),
-      }
-    : null;
+    if (userError) {
+      console.error("Error fetching user:", userError);
+      throw new Error("Failed to fetch user data");
+    }
 
-  return (
-    <div className="container mx-auto py-8">
-      <div className="mb-8">
-        <SubscriptionManager subscription={subscription!} />
-      </div>
+    // Get user's recent content
+    const { data: recentContent, error: contentError } = await supabaseAdmin
+      .from("contents")
+      .select("*")
+      .eq("user_id", session.user.id)
+      .order("created_at", { ascending: false })
+      .limit(5);
 
-      <h1 className="text-3xl font-bold mb-8">Content Dashboard</h1>
+    if (contentError) {
+      console.error("Error fetching content:", contentError);
+    }
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div className="space-y-6">
-          <h2 className="text-xl font-semibold">Generate New Content</h2>
-          <ContentForm />
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-[#0a0a2c] to-gray-900">
+        <div className="container mx-auto px-4 py-8">
+          <DashboardHeader user={user} />
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
+            {/* Content Creation Section */}
+            <div className="space-y-6">
+              <ContentForm />
+            </div>
+
+            {/* Recent Content Section */}
+            <div className="space-y-6">
+              <ContentList contents={recentContent || []} />
+            </div>
+          </div>
         </div>
-
-        <div className="space-y-6">
-          <h2 className="text-xl font-semibold">Editor</h2>
-          <ContentEditor
-            onSave={async (content) => {
-              // Handle save
-              console.log("Saving content:", content);
-            }}
-          />
+      </div>
+    );
+  } catch (error) {
+    console.error("Dashboard error:", error);
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-[#0a0a2c] to-gray-900">
+        <div className="container mx-auto px-4 py-8">
+          <div className="bg-red-500/10 border border-red-500/20 text-red-500 rounded-lg p-4">
+            Something went wrong. Please try again later.
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  }
 }

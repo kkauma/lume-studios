@@ -3,6 +3,9 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { supabase } from "@/lib/supabase";
 
 export const authOptions: NextAuthOptions = {
+  session: {
+    strategy: "jwt",
+  },
   providers: [
     CredentialsProvider({
       name: "credentials",
@@ -15,23 +18,38 @@ export const authOptions: NextAuthOptions = {
           throw new Error("Missing credentials");
         }
 
-        const {
-          data: { user },
-          error,
-        } = await supabase.auth.signInWithPassword({
-          email: credentials.email,
-          password: credentials.password,
-        });
+        try {
+          // Sign in with Supabase auth
+          const { data: authData, error: authError } =
+            await supabase.auth.signInWithPassword({
+              email: credentials.email,
+              password: credentials.password,
+            });
 
-        if (error || !user) {
-          throw new Error(error?.message || "Invalid credentials");
+          if (authError || !authData.user) {
+            throw new Error("Invalid login credentials");
+          }
+
+          // Get user data from our users table
+          const { data: userData, error: userError } = await supabase
+            .from("users")
+            .select("*")
+            .eq("id", authData.user.id)
+            .single();
+
+          if (userError || !userData) {
+            throw new Error("User not found");
+          }
+
+          return {
+            id: userData.id,
+            email: userData.email,
+            name: userData.name,
+            role: userData.role,
+          };
+        } catch (error: any) {
+          throw new Error(error.message || "Invalid login credentials");
         }
-
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.user_metadata.name,
-        };
       },
     }),
   ],
@@ -39,26 +57,21 @@ export const authOptions: NextAuthOptions = {
     signIn: "/login",
   },
   callbacks: {
-    async session({ token, session }) {
-      if (token && session.user) {
-        const { data: user } = await supabase
-          .from("users")
-          .select()
-          .eq("id", token.sub)
-          .single();
-
-        if (user) {
-          session.user.id = user.id;
-          session.user.role = user.role;
-        }
-      }
-      return session;
-    },
     async jwt({ token, user }) {
       if (user) {
-        token.sub = user.id;
+        token.id = user.id;
+        token.email = user.email;
+        token.name = user.name;
+        token.role = user.role;
       }
       return token;
+    },
+    async session({ session, token }) {
+      if (token && session.user) {
+        session.user.id = token.id as string;
+        session.user.role = token.role as string;
+      }
+      return session;
     },
   },
 };

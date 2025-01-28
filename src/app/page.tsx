@@ -20,9 +20,9 @@ export default function HomePage() {
             </div>
 
             <h1 className="text-5xl md:text-7xl font-bold mb-8 bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">
-              Content beyond imagination
+              Content beyond imagination.
               <br />
-              one prompt away.
+              One prompt away.
             </h1>
 
             <div className="max-w-2xl mx-auto">
@@ -36,19 +36,6 @@ export default function HomePage() {
                   Generate →
                 </button>
               </div>
-            </div>
-
-            <div className="mt-12">
-              <button className="flex items-center space-x-2 mx-auto text-gray-300 hover:text-white transition-colors">
-                <svg
-                  className="w-6 h-6"
-                  fill="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path d="M8 5v14l11-7z" />
-                </svg>
-                <span>Watch the video</span>
-              </button>
             </div>
           </div>
         </div>

@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 };
 
 async function getSupabaseSession() {
-  const cookieStore = headers();
+  const cookieStore = await headers();
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -23,7 +23,7 @@ async function getSupabaseSession() {
     {
       cookies: {
         get(name: string) {
-          return cookieStore.get(name)?.value;
+          return cookieStore.get(name);
         },
       },
     }
@@ -37,6 +37,7 @@ async function getSupabaseSession() {
   if (
     !session?.user?.id ||
     !session?.access_token ||
+    !session?.expires_at ||
     new Date(session.expires_at * 1000) < new Date()
   ) {
     return null;
@@ -54,19 +55,19 @@ async function getSupabaseSession() {
   };
 }
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const session = await getSupabaseSession();
+  const sessionPromise = getSupabaseSession();
 
   return (
     <html lang="en">
       <body className={inter.className}>
-        <Providers initialSession={session}>
+        <Providers initialSession={sessionPromise}>
           <Navbar />
-          <main>{children}</main>
+          {children}
           <Toaster />
         </Providers>
       </body>

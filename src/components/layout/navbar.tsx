@@ -49,6 +49,17 @@ export function Navbar() {
     }
   };
 
+  const handleSectionClick = (
+    e: React.MouseEvent<HTMLAnchorElement>,
+    sectionId: string
+  ) => {
+    e.preventDefault();
+    const section = document.getElementById(sectionId);
+    if (section) {
+      section.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
   return (
     <nav className="fixed top-0 w-full z-50 px-6 py-4 bg-gradient-to-b from-gray-900/80 to-gray-900/0 backdrop-blur-sm">
       <div className="container mx-auto flex items-center justify-between">
@@ -59,12 +70,20 @@ export function Navbar() {
         </div>
 
         <div className="hidden md:flex items-center space-x-8 text-gray-300">
-          <Link href="/overview" className="hover:text-white transition-colors">
+          <a
+            href="#overview"
+            onClick={(e) => handleSectionClick(e, "overview")}
+            className="hover:text-white transition-colors"
+          >
             Overview
-          </Link>
-          <Link href="/features" className="hover:text-white transition-colors">
+          </a>
+          <a
+            href="#features"
+            onClick={(e) => handleSectionClick(e, "features")}
+            className="hover:text-white transition-colors"
+          >
             Features
-          </Link>
+          </a>
           <Link href="/pricing" className="hover:text-white transition-colors">
             Pricing
           </Link>

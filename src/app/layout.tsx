@@ -55,17 +55,17 @@ async function getSupabaseSession() {
   };
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const sessionPromise = getSupabaseSession();
+  const session = await getSupabaseSession();
 
   return (
     <html lang="en">
       <body className={inter.className}>
-        <Providers initialSession={sessionPromise}>
+        <Providers initialSession={session}>
           <Navbar />
           {children}
           <Toaster />

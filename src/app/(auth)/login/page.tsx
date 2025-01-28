@@ -1,5 +1,7 @@
 import { LoginForm } from "@/components/auth/login-form";
+import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
+import { authOptions } from "@/lib/auth";
 
 interface LoginPageProps {
   searchParams?: {
@@ -8,7 +10,13 @@ interface LoginPageProps {
   };
 }
 
-export default function LoginPage({ searchParams }: LoginPageProps) {
+export default async function LoginPage({ searchParams }: LoginPageProps) {
+  // Check if user is already logged in
+  const session = await getServerSession(authOptions);
+  if (session?.user) {
+    redirect(searchParams?.redirectTo || "/dashboard");
+  }
+
   return (
     <div className="flex min-h-screen items-center justify-center p-6">
       <div className="w-full max-w-md space-y-8">

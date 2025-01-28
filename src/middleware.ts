@@ -17,20 +17,16 @@ export async function middleware(req: NextRequest) {
   if (isProtectedRoute) {
     const {
       data: { session },
-      error,
     } = await supabase.auth.getSession();
 
-    // If no session or error, redirect to login with message
-    if (!session?.user || error) {
+    // If no session, redirect to login with message
+    if (!session) {
       const redirectUrl = new URL("/login", req.url);
-      // Add message as search param
       redirectUrl.searchParams.set(
         "message",
         "Please log in to access this page"
       );
-      // Add the attempted URL as a redirect parameter
       redirectUrl.searchParams.set("redirectTo", req.nextUrl.pathname);
-
       return NextResponse.redirect(redirectUrl);
     }
   }
@@ -39,5 +35,15 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+  matcher: [
+    /*
+     * Match all request paths except for the ones starting with:
+     * - api (API routes)
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     * - public folder
+     */
+    "/((?!api|_next/static|_next/image|favicon.ico|public).*)",
+  ],
 };

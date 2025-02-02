@@ -1,92 +1,19 @@
-import { NextAuthOptions } from "next-auth";
-import CredentialsProvider from "next-auth/providers/credentials";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@supabase/supabase-js";
 
-export const authOptions: NextAuthOptions = {
-  session: {
-    strategy: "jwt",
-    maxAge: 24 * 60 * 60, // 24 hours
-  },
-  providers: [
-    CredentialsProvider({
-      name: "credentials",
-      credentials: {
-        email: { label: "Email", type: "email" },
-        password: { label: "Password", type: "password" },
-      },
-      async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
-          throw new Error("Missing credentials");
-        }
+export const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 
-        try {
-          // Sign in with Supabase auth
-          const { data: authData, error: authError } =
-            await supabase.auth.signInWithPassword({
-              email: credentials.email,
-              password: credentials.password,
-            });
-
-          if (authError || !authData.user) {
-            throw new Error("Invalid login credentials");
-          }
-
-          // Get user data from our users table
-          const { data: userData, error: userError } = await supabase
-            .from("users")
-            .select("*")
-            .eq("id", authData.user.id)
-            .single();
-
-          if (userError || !userData) {
-            throw new Error("User not found");
-          }
-
-          return {
-            id: userData.id,
-            email: userData.email,
-            name: userData.name,
-            role: userData.role,
-          };
-        } catch (error: any) {
-          throw new Error(error.message || "Invalid login credentials");
-        }
-      },
-    }),
-  ],
-  pages: {
-    signIn: "/login",
-    signOut: "/",
-    error: "/login",
-  },
-  callbacks: {
-    async jwt({ token, user }) {
-      if (user) {
-        token.id = user.id;
-        token.email = user.email;
-        token.name = user.name;
-        token.role = user.role;
-      }
-      return token;
-    },
-    async session({ session, token }) {
-      if (token && session.user) {
-        session.user.id = token.id as string;
-        session.user.role = token.role as string;
-      }
-      return session;
-    },
-  },
-  events: {
-    async signOut() {
-      // Ensure Supabase is signed out
-      await supabase.auth.signOut();
-    },
-  },
-  // Add these options to prevent auto sign-in
-  secret: process.env.NEXTAUTH_SECRET,
-  debug: process.env.NODE_ENV === "development",
-  jwt: {
-    maxAge: 24 * 60 * 60, // 24 hours
-  },
-};
+// Helper to check if user is authenticated
+export async function checkUser() {
+  const {
+    data: { session },
+    error,
+  } = await supabase.auth.getSession();
+  if (error) {
+    console.error("Error checking auth status:", error);
+    return null;
+  }
+  return session?.user || null;
+}

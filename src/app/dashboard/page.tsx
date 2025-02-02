@@ -1,24 +1,36 @@
 import { ContentForm } from "@/components/content/content-form";
 import { ContentList } from "@/components/content/content-list";
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
-import { createClient } from "@supabase/supabase-js";
+import { createServerClient } from "@supabase/ssr";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
-// Create a Supabase client with the service role key for admin access
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
-
 export default async function DashboardPage() {
-  const session = await getServerSession(authOptions);
-  if (!session?.user) redirect("/login");
+  const cookieStore = cookies();
+
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return cookieStore.get(name)?.value;
+        },
+      },
+    }
+  );
+
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  if (!session) {
+    redirect("/login");
+  }
 
   try {
-    // Get user data including subscription status using admin client
-    const { data: user, error: userError } = await supabaseAdmin
+    // Get user data including subscription status
+    const { data: user, error: userError } = await supabase
       .from("users")
       .select("*")
       .eq("id", session.user.id)
@@ -30,7 +42,7 @@ export default async function DashboardPage() {
     }
 
     // Get user's recent content
-    const { data: recentContent, error: contentError } = await supabaseAdmin
+    const { data: recentContent, error: contentError } = await supabase
       .from("contents")
       .select("*")
       .eq("user_id", session.user.id)

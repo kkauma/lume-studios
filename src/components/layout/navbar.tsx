@@ -1,87 +1,41 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { useSession, signOut } from "next-auth/react";
-import { ChevronDown, LogOut } from "lucide-react";
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { supabase } from "@/lib/supabase";
-import { toast } from "@/components/ui/use-toast";
+import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { supabase } from "@/lib/auth";
 
 export function Navbar() {
-  const pathname = usePathname();
-  const { data: session, status } = useSession();
-  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const [user, setUser] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Don't show navbar on auth pages
-  if (pathname.startsWith("/login") || pathname.startsWith("/signup")) {
-    return null;
-  }
+  useEffect(() => {
+    // Check auth status on mount
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+      setIsLoading(false);
+    });
 
-  const handleLogout = async () => {
+    // Subscribe to auth changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  async function handleLogout() {
     try {
-      setIsLoading(true);
-
-      // Sign out from NextAuth with callback
-      await signOut({
-        redirect: false,
-        callbackUrl: "/login",
-      });
-
-      // Show success message
-      toast({
-        title: "Logged out successfully",
-        description: "You have been securely logged out.",
-      });
-
-      // Redirect to login page
+      await supabase.auth.signOut();
       router.push("/login");
       router.refresh();
     } catch (error) {
-      console.error("Logout failed:", error);
-      toast({
-        title: "Logout failed",
-        description:
-          "Please try again or contact support if the problem persists.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
+      console.error("Error logging out:", error);
     }
-  };
-
-  // Determine what button to show based on authentication status
-  const renderAuthButton = () => {
-    if (status === "loading") {
-      return <div className="w-20 h-9 bg-gray-800 rounded-lg animate-pulse" />;
-    }
-
-    if (session?.user) {
-      return (
-        <div className="flex items-center gap-4">
-          <span className="text-sm text-gray-400">{session.user.email}</span>
-          <button
-            onClick={handleLogout}
-            disabled={isLoading}
-            className="bg-red-500/10 text-red-400 px-4 py-2 rounded-lg hover:bg-red-500/20 transition-colors disabled:opacity-50"
-          >
-            {isLoading ? "Logging out..." : "Logout"}
-          </button>
-        </div>
-      );
-    }
-
-    return (
-      <Link
-        href="/login"
-        className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
-      >
-        Login
-      </Link>
-    );
-  };
+  }
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-gray-900/50 backdrop-blur-lg border-b border-gray-800">
@@ -99,7 +53,26 @@ export function Navbar() {
               FAQ
             </Link>
 
-            {renderAuthButton()}
+            {isLoading ? (
+              <div className="w-20 h-9 bg-gray-800 rounded-lg animate-pulse" />
+            ) : user ? (
+              <div className="flex items-center gap-4">
+                <span className="text-sm text-gray-400">{user.email}</span>
+                <button
+                  onClick={handleLogout}
+                  className="bg-red-500/10 text-red-400 px-4 py-2 rounded-lg hover:bg-red-500/20 transition-colors"
+                >
+                  Logout
+                </button>
+              </div>
+            ) : (
+              <Link
+                href="/login"
+                className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
+              >
+                Login
+              </Link>
+            )}
           </div>
         </div>
       </div>

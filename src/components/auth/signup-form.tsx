@@ -3,54 +3,55 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "@/components/ui/use-toast";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/lib/auth";
 
 export function SignUpForm() {
   const router = useRouter();
+  const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    setError(null);
     setIsLoading(true);
 
     const formData = new FormData(e.currentTarget);
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
+    const username = formData.get("username") as string;
 
     try {
-      const { error } = await supabase.auth.signUp({
+      // Create the user in Supabase Auth
+      const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
+          data: { username },
         },
       });
 
-      if (error) {
-        toast({
-          title: "Error",
-          description: error.message,
-          variant: "destructive",
-        });
-        return;
+      if (authError) throw authError;
+
+      // If successful, create a record in our users table
+      if (authData.user) {
+        const { error: profileError } = await supabase.from("users").insert([
+          {
+            id: authData.user.id,
+            email: email,
+            username: username,
+            created_at: new Date().toISOString(),
+          },
+        ]);
+
+        if (profileError) throw profileError;
       }
 
-      // Successful signup
-      toast({
-        title: "Success",
-        description: "Please check your email to verify your account.",
-      });
-
-      // Redirect to login page
+      // Redirect to login with success message
       router.push(
-        "/login?message=Please check your email to verify your account"
+        "/login?message=Account created successfully. Please log in."
       );
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Something went wrong. Please try again.",
-        variant: "destructive",
-      });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An error occurred");
     } finally {
       setIsLoading(false);
     }
@@ -58,6 +59,25 @@ export function SignUpForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <label htmlFor="username" className="block text-sm text-gray-400 mb-2">
+          Username
+        </label>
+        <input
+          type="text"
+          id="username"
+          name="username"
+          required
+          className="w-full px-4 py-2 bg-gray-900/50 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-white"
+          placeholder="Choose a username"
+          disabled={isLoading}
+          minLength={3}
+          maxLength={20}
+          pattern="^[a-zA-Z0-9_-]+$"
+          title="Username can only contain letters, numbers, underscores, and hyphens"
+        />
+      </div>
+
       <div>
         <label htmlFor="email" className="block text-sm text-gray-400 mb-2">
           Email

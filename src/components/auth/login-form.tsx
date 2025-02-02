@@ -1,16 +1,17 @@
 "use client";
 
-import { signIn } from "next-auth/react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { toast } from "@/components/ui/use-toast";
+import { supabase } from "@/lib/auth";
 
 export function LoginForm() {
   const router = useRouter();
+  const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    setError(null);
     setIsLoading(true);
 
     const formData = new FormData(e.currentTarget);
@@ -18,35 +19,20 @@ export function LoginForm() {
     const password = formData.get("password") as string;
 
     try {
-      const result = await signIn("credentials", {
+      const { error: signInError } = await supabase.auth.signInWithPassword({
         email,
         password,
-        redirect: false,
       });
 
-      if (result?.error) {
-        toast({
-          title: "Error",
-          description: "Invalid email or password",
-          variant: "destructive",
-        });
-        return;
-      }
+      if (signInError) throw signInError;
 
       // Successful login
-      toast({
-        title: "Success",
-        description: "Logged in successfully",
-      });
-
       router.push("/dashboard");
       router.refresh();
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Something went wrong. Please try again.",
-        variant: "destructive",
-      });
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Invalid login credentials"
+      );
     } finally {
       setIsLoading(false);
     }

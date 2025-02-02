@@ -1,19 +1,11 @@
+"use client";
+
 import { LoginForm } from "@/components/auth/login-form";
-import { getServerSession } from "next-auth";
-import { redirect } from "next/navigation";
-import { authOptions } from "@/lib/auth";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 
-export default async function LoginPage({
-  searchParams,
-}: {
-  searchParams: { [key: string]: string | undefined };
-}) {
-  const session = await getServerSession(authOptions);
-
-  // If user is already logged in, redirect to dashboard
-  if (session?.user) {
-    redirect("/dashboard");
-  }
+export default function LoginPage() {
+  const router = useRouter();
 
   return (
     <div className="flex min-h-screen items-center justify-center p-6">
@@ -29,15 +21,17 @@ export default async function LoginPage({
             </p>
           </div>
 
-          {searchParams?.error && (
-            <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 text-red-500 rounded text-center text-sm">
-              {searchParams.error === "CredentialsSignin"
-                ? "Invalid email or password"
-                : "An error occurred. Please try again."}
-            </div>
-          )}
-
           <LoginForm />
+
+          <div className="mt-6 text-center text-sm text-gray-400">
+            Don't have an account?{" "}
+            <Link
+              href="/signup"
+              className="text-blue-400 hover:text-blue-300 font-medium"
+            >
+              Sign up
+            </Link>
+          </div>
         </div>
       </div>
     </div>

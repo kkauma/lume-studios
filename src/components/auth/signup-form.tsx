@@ -1,133 +1,101 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
+import { toast } from "@/components/ui/use-toast";
 import { supabase } from "@/lib/supabase";
 
 export function SignUpForm() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [name, setName] = useState("");
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setIsLoading(true);
-    setError(null);
+
+    const formData = new FormData(e.currentTarget);
+    const email = formData.get("email") as string;
+    const password = formData.get("password") as string;
 
     try {
-      // 1. Create auth user in Supabase
-      const { data: authData, error: authError } = await supabase.auth.signUp({
+      const { error } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+        },
       });
 
-      if (authError) throw authError;
-
-      // 2. Create user record in our users table using service role client
-      if (authData.user) {
-        const response = await fetch("/api/auth/create-user", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            id: authData.user.id,
-            email: authData.user.email,
-            name,
-          }),
+      if (error) {
+        toast({
+          title: "Error",
+          description: error.message,
+          variant: "destructive",
         });
-
-        if (!response.ok) {
-          throw new Error("Failed to create user profile");
-        }
+        return;
       }
 
-      router.push("/login?registered=true");
-    } catch (error: any) {
-      setError(error.message);
+      // Successful signup
+      toast({
+        title: "Success",
+        description: "Please check your email to verify your account.",
+      });
+
+      // Redirect to login page
+      router.push(
+        "/login?message=Please check your email to verify your account"
+      );
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
-  };
+  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      {error && (
-        <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-500 rounded">
-          {error}
-        </div>
-      )}
-
       <div>
-        <label
-          htmlFor="name"
-          className="block text-sm font-medium text-gray-300"
-        >
-          Name
-        </label>
-        <input
-          id="name"
-          type="text"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          className="mt-1 block w-full rounded-md bg-white/10 border border-gray-600 px-3 py-2 text-white placeholder-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-          required
-        />
-      </div>
-
-      <div>
-        <label
-          htmlFor="email"
-          className="block text-sm font-medium text-gray-300"
-        >
+        <label htmlFor="email" className="block text-sm text-gray-400 mb-2">
           Email
         </label>
         <input
-          id="email"
           type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="mt-1 block w-full rounded-md bg-white/10 border border-gray-600 px-3 py-2 text-white placeholder-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+          id="email"
+          name="email"
           required
+          className="w-full px-4 py-2 bg-gray-900/50 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-white"
+          placeholder="Enter your email"
+          disabled={isLoading}
         />
       </div>
 
       <div>
-        <label
-          htmlFor="password"
-          className="block text-sm font-medium text-gray-300"
-        >
+        <label htmlFor="password" className="block text-sm text-gray-400 mb-2">
           Password
         </label>
         <input
-          id="password"
           type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="mt-1 block w-full rounded-md bg-white/10 border border-gray-600 px-3 py-2 text-white placeholder-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+          id="password"
+          name="password"
           required
+          minLength={6}
+          className="w-full px-4 py-2 bg-gray-900/50 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-white"
+          placeholder="Create a password"
+          disabled={isLoading}
         />
       </div>
 
-      <Button
+      <button
         type="submit"
-        className="w-full bg-gradient-to-r from-blue-600 to-blue-400"
         disabled={isLoading}
+        className="w-full bg-gradient-to-r from-blue-600 to-blue-400 text-white py-2 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
       >
         {isLoading ? "Creating account..." : "Create account"}
-      </Button>
-
-      <p className="text-center text-sm text-gray-400">
-        Already have an account?{" "}
-        <Link href="/login" className="text-blue-400 hover:text-blue-300">
-          Sign in
-        </Link>
-      </p>
+      </button>
     </form>
   );
 }

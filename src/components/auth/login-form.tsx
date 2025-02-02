@@ -3,6 +3,7 @@
 import { signIn } from "next-auth/react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "@/components/ui/use-toast";
 
 export function LoginForm() {
   const router = useRouter();
@@ -24,18 +25,30 @@ export function LoginForm() {
       });
 
       if (result?.error) {
-        // Let NextAuth handle the error display through the URL
-        router.push(`/login?error=${result.error}`);
-        setIsLoading(false);
+        toast({
+          title: "Error",
+          description: "Invalid email or password",
+          variant: "destructive",
+        });
         return;
       }
 
       // Successful login
-      router.refresh(); // Refresh the session
-      router.push("/dashboard"); // Redirect to dashboard
+      toast({
+        title: "Success",
+        description: "Logged in successfully",
+      });
+
+      router.push("/dashboard");
+      router.refresh();
     } catch (error) {
+      toast({
+        title: "Error",
+        description: "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
       setIsLoading(false);
-      router.push("/login?error=UnknownError");
     }
   }
 

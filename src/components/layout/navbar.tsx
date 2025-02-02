@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { ChevronDown, LogOut } from "lucide-react";
 import { useState } from "react";
@@ -13,6 +13,7 @@ export function Navbar() {
   const { data: session, status, update } = useSession();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
 
   // Don't show navbar on auth pages
   if (pathname.startsWith("/login") || pathname.startsWith("/signup")) {
@@ -50,59 +51,43 @@ export function Navbar() {
   };
 
   return (
-    <nav className="fixed top-0 w-full z-50 px-6 py-4 bg-gradient-to-b from-gray-900/80 to-gray-900/0 backdrop-blur-sm">
-      <div className="container mx-auto flex items-center justify-between">
-        <div className="flex items-center">
-          <Link href="/" className="hover:opacity-90 transition-opacity">
-            <h1 className="text-2xl font-bold text-white">Lume Studios</h1>
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-gray-900/50 backdrop-blur-lg border-b border-gray-800">
+      <div className="container mx-auto px-4">
+        <div className="flex items-center justify-between h-16">
+          <Link href="/" className="text-xl font-bold text-white">
+            Lume Studios
           </Link>
-        </div>
 
-        <div className="hidden md:flex items-center space-x-8 text-gray-300">
-          <Link href="/pricing" className="hover:text-white transition-colors">
-            Pricing
-          </Link>
-          <Link href="/faq" className="hover:text-white transition-colors">
-            FAQ
-          </Link>
-        </div>
+          <div className="flex items-center gap-6">
+            <Link href="/pricing" className="text-gray-300 hover:text-white">
+              Pricing
+            </Link>
+            <Link href="/faq" className="text-gray-300 hover:text-white">
+              FAQ
+            </Link>
 
-        {status === "authenticated" && session?.user ? (
-          <div className="relative">
-            <button
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="flex items-center space-x-2 text-white hover:opacity-80 transition-opacity focus:outline-none"
-            >
-              <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-600 to-blue-400 flex items-center justify-center">
-                {session.user?.name?.[0]?.toUpperCase() || "U"}
-              </div>
-              <ChevronDown className="w-4 h-4" />
-            </button>
-
-            {isMenuOpen && (
-              <div className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-gray-800 ring-1 ring-black ring-opacity-5">
-                <div className="py-1">
-                  <Button
-                    onClick={handleLogout}
-                    disabled={isLoading}
-                    className="flex items-center w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-700"
-                    variant="ghost"
-                  >
-                    <LogOut className="mr-2 h-4 w-4" />
-                    {isLoading ? "Logging out..." : "Logout"}
-                  </Button>
-                </div>
-              </div>
+            {status === "loading" ? (
+              // Show loading state
+              <div className="w-20 h-9 bg-gray-800 rounded-lg animate-pulse" />
+            ) : session?.user ? (
+              // Show logout button when logged in
+              <button
+                onClick={handleLogout}
+                className="bg-red-500/10 text-red-400 px-4 py-2 rounded-lg hover:bg-red-500/20 transition-colors"
+              >
+                Logout
+              </button>
+            ) : (
+              // Show login button when logged out
+              <Link
+                href="/login"
+                className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
+              >
+                Login
+              </Link>
             )}
           </div>
-        ) : (
-          <Link
-            href="/login"
-            className="bg-gradient-to-r from-blue-600 to-blue-400 text-white px-6 py-2 rounded-full hover:opacity-90 transition-opacity"
-          >
-            Login
-          </Link>
-        )}
+        </div>
       </div>
     </nav>
   );

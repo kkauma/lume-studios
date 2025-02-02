@@ -3,18 +3,16 @@ import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 
-interface LoginPageProps {
-  searchParams?: {
-    message?: string;
-    redirectTo?: string;
-  };
-}
-
-export default async function LoginPage({ searchParams }: LoginPageProps) {
-  // Check if user is already logged in
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: { [key: string]: string | undefined };
+}) {
   const session = await getServerSession(authOptions);
+
+  // If user is already logged in, redirect to dashboard
   if (session?.user) {
-    redirect(searchParams?.redirectTo || "/dashboard");
+    redirect("/dashboard");
   }
 
   return (
@@ -31,13 +29,15 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
             </p>
           </div>
 
-          {searchParams?.message && (
-            <div className="mb-4 p-3 bg-blue-500/10 border border-blue-500/20 text-blue-500 rounded text-center text-sm">
-              {searchParams.message}
+          {searchParams?.error && (
+            <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 text-red-500 rounded text-center text-sm">
+              {searchParams.error === "CredentialsSignin"
+                ? "Invalid email or password"
+                : "An error occurred. Please try again."}
             </div>
           )}
 
-          <LoginForm redirectTo={searchParams?.redirectTo} />
+          <LoginForm />
         </div>
       </div>
     </div>

@@ -1,26 +1,20 @@
 "use client";
 
-import { useState } from "react";
 import { signIn } from "next-auth/react";
-import { Button } from "@/components/ui/button";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 
-interface LoginFormProps {
-  redirectTo?: string;
-}
-
-export function LoginForm({ redirectTo }: LoginFormProps) {
+export function LoginForm() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setIsLoading(true);
-    setError(null);
+
+    const formData = new FormData(e.currentTarget);
+    const email = formData.get("email") as string;
+    const password = formData.get("password") as string;
 
     try {
       const result = await signIn("credentials", {
@@ -30,76 +24,60 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
       });
 
       if (result?.error) {
-        setError(result.error);
+        // Let NextAuth handle the error display through the URL
+        router.push(`/login?error=${result.error}`);
+        setIsLoading(false);
         return;
       }
 
-      // Redirect to the original requested URL or dashboard
-      router.push(redirectTo || "/dashboard");
-      router.refresh();
-    } catch (error: any) {
-      setError(error.message || "Something went wrong");
-    } finally {
+      // Successful login
+      router.refresh(); // Refresh the session
+      router.push("/dashboard"); // Redirect to dashboard
+    } catch (error) {
       setIsLoading(false);
+      router.push("/login?error=UnknownError");
     }
-  };
+  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      {error && (
-        <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-500 rounded">
-          {error}
-        </div>
-      )}
-
       <div>
-        <label
-          htmlFor="email"
-          className="block text-sm font-medium text-gray-300"
-        >
+        <label htmlFor="email" className="block text-sm text-gray-400 mb-2">
           Email
         </label>
         <input
-          id="email"
           type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="mt-1 block w-full rounded-md bg-white/10 border border-gray-600 px-3 py-2 text-white placeholder-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+          id="email"
+          name="email"
           required
+          className="w-full px-4 py-2 bg-gray-900/50 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-white"
+          placeholder="Enter your email"
+          disabled={isLoading}
         />
       </div>
 
       <div>
-        <label
-          htmlFor="password"
-          className="block text-sm font-medium text-gray-300"
-        >
+        <label htmlFor="password" className="block text-sm text-gray-400 mb-2">
           Password
         </label>
         <input
-          id="password"
           type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="mt-1 block w-full rounded-md bg-white/10 border border-gray-600 px-3 py-2 text-white placeholder-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+          id="password"
+          name="password"
           required
+          className="w-full px-4 py-2 bg-gray-900/50 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-white"
+          placeholder="Enter your password"
+          disabled={isLoading}
         />
       </div>
 
-      <Button
+      <button
         type="submit"
-        className="w-full bg-gradient-to-r from-blue-600 to-blue-400"
         disabled={isLoading}
+        className="w-full bg-gradient-to-r from-blue-600 to-blue-400 text-white py-2 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
       >
         {isLoading ? "Signing in..." : "Sign in"}
-      </Button>
-
-      <p className="text-center text-sm text-gray-400">
-        Don't have an account?{" "}
-        <Link href="/signup" className="text-blue-400 hover:text-blue-300">
-          Create one
-        </Link>
-      </p>
+      </button>
     </form>
   );
 }

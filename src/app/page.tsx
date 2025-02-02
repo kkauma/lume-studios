@@ -1,13 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import {
   ArrowRight,
   Sparkles,
   Zap,
   BarChart3,
-  RefreshCcw,
   Wand2,
   Users,
   Target,

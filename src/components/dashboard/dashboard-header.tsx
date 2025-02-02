@@ -21,7 +21,7 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
   }
 
   return (
-    <div className="bg-gray-800/50 rounded-lg p-6 backdrop-blur-sm">
+    <div className="bg-gray-800/50 rounded-lg p-8 backdrop-blur-sm">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-white">

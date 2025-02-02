@@ -43,7 +43,7 @@ export default async function DashboardPage() {
 
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-[#0a0a2c] to-gray-900">
-        <div className="container mx-auto px-4 py-8">
+        <div className="container mx-auto px-4 pt-24 pb-8">
           <DashboardHeader user={user} />
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
@@ -64,7 +64,7 @@ export default async function DashboardPage() {
     console.error("Dashboard error:", error);
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-[#0a0a2c] to-gray-900">
-        <div className="container mx-auto px-4 py-8">
+        <div className="container mx-auto px-4 pt-24 pb-8">
           <div className="bg-red-500/10 border border-red-500/20 text-red-500 rounded-lg p-4">
             Something went wrong. Please try again later.
           </div>

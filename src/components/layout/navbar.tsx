@@ -7,11 +7,11 @@ import { ChevronDown, LogOut } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/lib/supabase";
+import { toast } from "@/components/ui/use-toast";
 
 export function Navbar() {
   const pathname = usePathname();
-  const { data: session, status, update } = useSession();
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { data: session, status } = useSession();
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
@@ -23,31 +23,64 @@ export function Navbar() {
   const handleLogout = async () => {
     try {
       setIsLoading(true);
-      setIsMenuOpen(false);
 
-      // Sign out from both auth providers
-      await Promise.all([
-        signOut({ redirect: false }),
-        supabase.auth.signOut(),
-      ]);
+      // Sign out from NextAuth with callback
+      await signOut({
+        redirect: false,
+        callbackUrl: "/login",
+      });
 
-      // Clear all storage
-      localStorage.clear();
-      sessionStorage.clear();
+      // Show success message
+      toast({
+        title: "Logged out successfully",
+        description: "You have been securely logged out.",
+      });
 
-      // Clear cookies
-      const cookies = document.cookie.split(";");
-      for (let cookie of cookies) {
-        const cookieName = cookie.split("=")[0].trim();
-        document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/;`;
-      }
-
-      // Force a complete page reload
-      window.location.href = "/";
+      // Redirect to login page
+      router.push("/login");
+      router.refresh();
     } catch (error) {
       console.error("Logout failed:", error);
-      window.location.href = "/";
+      toast({
+        title: "Logout failed",
+        description:
+          "Please try again or contact support if the problem persists.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
     }
+  };
+
+  // Determine what button to show based on authentication status
+  const renderAuthButton = () => {
+    if (status === "loading") {
+      return <div className="w-20 h-9 bg-gray-800 rounded-lg animate-pulse" />;
+    }
+
+    if (session?.user) {
+      return (
+        <div className="flex items-center gap-4">
+          <span className="text-sm text-gray-400">{session.user.email}</span>
+          <button
+            onClick={handleLogout}
+            disabled={isLoading}
+            className="bg-red-500/10 text-red-400 px-4 py-2 rounded-lg hover:bg-red-500/20 transition-colors disabled:opacity-50"
+          >
+            {isLoading ? "Logging out..." : "Logout"}
+          </button>
+        </div>
+      );
+    }
+
+    return (
+      <Link
+        href="/login"
+        className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
+      >
+        Login
+      </Link>
+    );
   };
 
   return (
@@ -66,26 +99,7 @@ export function Navbar() {
               FAQ
             </Link>
 
-            {status === "loading" ? (
-              // Show loading state
-              <div className="w-20 h-9 bg-gray-800 rounded-lg animate-pulse" />
-            ) : session?.user ? (
-              // Show logout button when logged in
-              <button
-                onClick={handleLogout}
-                className="bg-red-500/10 text-red-400 px-4 py-2 rounded-lg hover:bg-red-500/20 transition-colors"
-              >
-                Logout
-              </button>
-            ) : (
-              // Show login button when logged out
-              <Link
-                href="/login"
-                className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
-              >
-                Login
-              </Link>
-            )}
+            {renderAuthButton()}
           </div>
         </div>
       </div>

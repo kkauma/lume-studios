@@ -129,3 +129,6 @@ localhost.pem
 api-keys.json
 secrets.json
 credentials.json
+
+# cursor
+.cursorrules

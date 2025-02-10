@@ -7,7 +7,11 @@ import { headers } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
 import "./globals.css";
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({
+  subsets: ["latin"],
+  display: "swap",
+  weight: ["100", "900"],
+});
 
 export const metadata: Metadata = {
   title: "Lume Studios - AI Content Creation Platform",
@@ -63,7 +67,7 @@ export default async function RootLayout({
   const session = await getSupabaseSession();
 
   return (
-    <html lang="en">
+    <html lang="en" className={inter.className}>
       <body>
         <Providers initialSession={session}>
           <Navbar />

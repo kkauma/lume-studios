@@ -6,13 +6,10 @@ import { supabase } from "@/lib/auth";
 
 export function LoginForm() {
   const router = useRouter();
-  const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setError(null);
-    setIsLoading(true);
 
     const formData = new FormData(e.currentTarget);
     const email = formData.get("email") as string;
@@ -30,9 +27,7 @@ export function LoginForm() {
       router.push("/dashboard");
       router.refresh();
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Invalid login credentials"
-      );
+      console.error("Login error:", err);
     } finally {
       setIsLoading(false);
     }

@@ -4,7 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { stripe } from "@/lib/stripe";
 import { supabase } from "@/lib/supabase";
 
-export async function POST(req: Request) {
+export async function POST(_req: Request) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user) {

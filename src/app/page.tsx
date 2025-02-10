@@ -213,8 +213,8 @@ export default function HomePage() {
               <div className="mt-4 opacity-0 group-hover:opacity-100 transition-opacity">
                 <div className="bg-gray-900/50 rounded-lg p-4">
                   <code className="text-sm text-blue-400">
-                    "Write a compelling tweet about our new eco-friendly product
-                    line"
+                    &quot;Write a compelling tweet about our new eco-friendly
+                    product line&quot;
                   </code>
                 </div>
               </div>

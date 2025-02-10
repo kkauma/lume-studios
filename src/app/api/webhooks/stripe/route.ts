@@ -2,8 +2,9 @@ import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe";
 import { supabase } from "@/lib/supabase";
+import Stripe from "stripe";
 
-async function handleSubscriptionChange(subscription: any) {
+async function handleSubscriptionChange(subscription: Stripe.Subscription) {
   const { data: user } = await supabase
     .from("users")
     .select()
@@ -31,7 +32,7 @@ export async function POST(req: Request) {
   const headersList = await headers();
   const signature = headersList.get("Stripe-Signature")!;
 
-  let event;
+  let event: Stripe.Event;
 
   try {
     event = stripe.webhooks.constructEvent(
@@ -44,7 +45,7 @@ export async function POST(req: Request) {
     return new NextResponse("Webhook Error", { status: 400 });
   }
 
-  const subscription = event.data.object as any;
+  const subscription = event.data.object as Stripe.Subscription;
 
   switch (event.type) {
     case "customer.subscription.created":

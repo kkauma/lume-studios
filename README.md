@@ -2,6 +2,12 @@
 
 Lume Studios is a powerful AI-powered content generation platform built with modern web technologies. Create engaging content for blogs, social media, emails, and marketing copy with the help of AI.
 
+<p align="center">
+  <a href="https://lume-studios.vercel.app/">
+    <img src="https://img.shields.io/badge/Live_Demo-Visit_Site-2ea44f?style=for-the-badge" alt="Live Demo">
+  </a>
+</p>
+
 ## Features
 
 - **AI Content Generation**: Leverage Claude AI to create high-quality content

@@ -39,15 +39,15 @@ export function ContentForm() {
 
       if (!response.ok) throw new Error("Failed to generate content");
 
-      const data = await response.json();
+      await response.json();
+
       toast({
         title: "Success",
         description: "Content generated successfully!",
         variant: "default",
       });
-
-      // Handle successful generation (e.g., show in editor)
-    } catch (error) {
+    } catch (err) {
+      console.error(err);
       toast({
         title: "Error",
         description: "Failed to generate content. Please try again.",

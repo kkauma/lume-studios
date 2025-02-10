@@ -40,7 +40,8 @@ export class AIService {
         messages: [{ role: "user", content: prompt }],
       });
 
-      const generatedContent = completion.content[0].text;
+      const content = completion.content[0] as { text: string };
+      const generatedContent = content.text;
 
       if (!generatedContent) {
         throw new Error("No content generated");

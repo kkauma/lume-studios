@@ -17,9 +17,8 @@ export const useAuthStore = create<AuthStore>((set) => ({
       // Clear all auth-related cookies
       const cookies = document.cookie.split(";");
 
-      for (let cookie of cookies) {
+      for (const cookie of cookies) {
         const cookieName = cookie.split("=")[0].trim();
-        // Delete each cookie
         document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; domain=${window.location.hostname}`;
         document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/;`;
       }

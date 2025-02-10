@@ -28,7 +28,7 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
             Welcome, {user.name || "User"}
           </h1>
           <p className="text-gray-400 mt-1">
-            Let's create some amazing content
+            Let&apos;s create some amazing content
           </p>
         </div>
         <SubscriptionBadge plan={user.role} />

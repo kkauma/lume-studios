@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ContentGenerationRequest } from "@/types/ai";
 
 interface ContentEditorProps {
   initialContent?: string;

@@ -5,9 +5,17 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/auth";
 
+interface User {
+  id: string;
+  email?: string;
+  user_metadata?: {
+    username?: string;
+  };
+}
+
 export function Navbar() {
   const router = useRouter();
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {

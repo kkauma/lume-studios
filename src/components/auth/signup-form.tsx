@@ -10,7 +10,7 @@ export function SignUpForm() {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
     setIsLoading(true);
@@ -46,19 +46,34 @@ export function SignUpForm() {
         if (profileError) throw profileError;
       }
 
-      // Redirect to login with success message
+      toast({
+        title: "Account created",
+        description: "Please check your email to verify your account.",
+      });
+
       router.push(
         "/login?message=Account created successfully. Please log in."
       );
     } catch (err) {
+      console.error(err);
       setError(err instanceof Error ? err.message : "An error occurred");
+      toast({
+        title: "Error",
+        description: err instanceof Error ? err.message : "An error occurred",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
-  }
+  };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {error && (
+        <div className="p-3 bg-red-500/10 border border-red-500/50 rounded-lg text-red-500 text-sm">
+          {error}
+        </div>
+      )}
       <div>
         <label htmlFor="username" className="block text-sm text-gray-400 mb-2">
           Username

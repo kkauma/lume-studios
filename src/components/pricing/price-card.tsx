@@ -3,7 +3,6 @@
 import { Button } from "@/components/ui/button";
 import { Check } from "lucide-react";
 import Link from "next/link";
-import { useSession } from "next-auth/react";
 
 interface PriceCardProps {
   name: string;
@@ -22,8 +21,6 @@ export function PriceCard({
   highlighted = false,
   priceId,
 }: PriceCardProps) {
-  const { data: session } = useSession();
-
   const handleSubscribe = async () => {
     try {
       const response = await fetch("/api/stripe/create-checkout", {

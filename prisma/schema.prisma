@@ -20,6 +20,8 @@ model User {
   // Relations
   contents      Content[]
   subscriptions Subscription[]
+  accounts      Account[]
+  sessions      Session[]
 
   @@map("users")
 }
